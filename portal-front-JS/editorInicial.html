@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar Posts</title>
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+</head>
+<body class="w3-light-grey">
+
+    <!-- Navbar -->
+    <div class="w3-bar w3-dark-grey">
+        <span class="w3-bar-item w3-large">Portal de Notícias - Editor</span>
+        <a href="login.html" class="w3-bar-item w3-button w3-right">Logout</a>
+    </div>
+
+    <!-- Conteúdo principal -->
+    <div class="w3-container w3-margin-top">
+        <h2 class="w3-center">Gerenciar Posts</h2>
+        
+        <!-- Tabela de Posts -->
+        <div class="w3-responsive">
+            <table class="w3-table-all w3-hoverable">
+                <thead>
+                    <tr class="w3-dark-grey">
+                        <th>ID</th>
+                        <th>Título</th>
+                        <th>Data</th>
+                        <th>Categoria</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="posts-table">
+                    <!-- Conteúdo gerado dinamicamente -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Botão para criar novo post -->
+    <button 
+        class="w3-button w3-circle w3-blue w3-large w3-hover-light-blue w3-display-bottomright w3-margin"
+        onclick="window.location.href='novo-post.html'"
+        title="Criar Novo Post">
+        +
+    </button>
+
+    <!-- Scripts -->
+    <script>
+        const apiUrl = "http://localhost:8080/post"; // Endpoint do back-end
+
+        // Carregar os posts do servidor
+        async function carregarPosts() {
+            try {
+                const response = await fetch(`${apiUrl}/listar`);
+                if (!response.ok) throw new Error("Erro ao carregar os posts.");
+
+                const posts = await response.json();
+                const postsTable = document.getElementById("posts-table");
+
+                // Limpar tabela antes de renderizar
+                postsTable.innerHTML = "";
+
+                // Adicionar cada post na tabela
+                posts.forEach(post => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${post.id}</td>
+                        <td>${post.titulo}</td>
+                        <td>${post.data}</td>
+                        <td>${post.categoria}</td>
+                        <td>
+                            <button class="w3-button w3-small w3-green w3-hover-light-green" onclick="editarPost(${post.id})">Editar</button>
+                            <button class="w3-button w3-small w3-red w3-hover-pink" onclick="apagarPost(${post.id})">Apagar</button>
+                        </td>
+                    `;
+                    postsTable.appendChild(row);
+                });
+            } catch (error) {
+                console.error("Erro ao carregar posts:", error);
+                alert("Não foi possível carregar os posts.");
+            }
+        }
+
+        // Função para editar um post
+        function editarPost(id) {
+            window.location.href = `editar-post.html?id=${id}`;
+        }
+
+        // Função para apagar um post
+        async function apagarPost(id) {
+            if (confirm("Deseja realmente apagar este post?")) {
+                try {
+                    const response = await fetch(`${apiUrl}/remover/${id}`, { method: "DELETE" });
+                    if (response.ok) {
+                        alert("Post apagado com sucesso!");
+                        carregarPosts(); // Recarregar a tabela
+                    } else {
+                        alert("Erro ao apagar o post.");
+                    }
+                } catch (error) {
+                    console.error("Erro ao apagar post:", error);
+                    alert("Não foi possível apagar o post.");
+                }
+            }
+        }
+
+        // Carregar os posts ao abrir a página
+        carregarPosts();
+    </script>
+
+</body>
+</html>
